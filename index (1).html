@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+  Recall: a spaced-repetition flashcard app in a single file. No build step, no accounts, no dependencies.
+  Your decks live in your browser (localStorage). Export a backup any time. Host free with GitHub Pages.
+  MIT License, Copyright (c) 2026
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Recall: spaced-repetition flashcards that run entirely in your browser.">
+<meta name="theme-color" content="#4F46E5">
+<title>Recall: spaced-repetition flashcards</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234F46E5'/%3E%3Crect x='24' y='30' width='52' height='40' rx='8' fill='none' stroke='white' stroke-width='7'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1F2937;--acc:#4F46E5;--acc2:#4338CA;--mute:#6B7280;--bg:#F5F6FA;--card:#fff;--line:#E5E7EB;--bd:#D1D5DB;--hov:#F3F4F6;--sel:#EEF2FF;--ok:#16A34A;--bad:#DC2626;--warn:#D97706;color-scheme:light}
+:root[data-theme=dark]{--ink:#E5E7EB;--acc:#818CF8;--acc2:#6366F1;--mute:#94A3B8;--bg:#0B1020;--card:#121A2F;--line:#232D49;--bd:#334155;--hov:#1A2440;--sel:#1E2547;--ok:#4ADE80;--bad:#F87171;--warn:#FBBF24;color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+header{max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;gap:12px;align-items:center}.mark{width:36px;height:36px;border-radius:10px;background:var(--acc);display:grid;place-items:center}
+h1{font:650 20px Inter,sans-serif;letter-spacing:-.01em}.hb{display:flex;gap:10px;align-items:center}
+.streak{font-size:13px;font-weight:600;color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent);padding:5px 12px;border-radius:99px}
+.app{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:270px minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:860px){.app{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:0 1px 2px #1018280a}
+h2{font:650 18px Inter,sans-serif;letter-spacing:-.01em;margin-bottom:12px}h3{font:600 14px Inter,sans-serif;margin-bottom:10px;color:var(--mute)}
+.pill{padding:8px 14px;border:1px solid var(--bd);border-radius:8px;background:var(--card);font-weight:500;font-size:14px}.pill:hover{background:var(--hov)}
+.go{background:var(--acc);color:#fff;padding:10px 20px;border-radius:8px;font-weight:600}.go:hover{background:var(--acc2)}.go:disabled{opacity:.45;cursor:default}
+.danger{color:var(--bad)}.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.di{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:9px 12px;border-radius:8px;font-weight:500;gap:8px}.di:hover{background:var(--hov)}.di.on{background:var(--sel);color:var(--acc)}
+.di span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.di b{font-size:12px;background:var(--acc);color:#fff;border-radius:99px;padding:1px 8px;font-weight:600}.di b.z{background:var(--hov);color:var(--mute)}
+.side2{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:2px}.side2 button{text-align:left;padding:7px 12px;border-radius:8px;color:var(--mute);font-size:14px}.side2 button:hover{background:var(--hov);color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}.stat b{display:block;font:700 28px/1.1 Inter,sans-serif;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.stat span{font-size:13px;color:var(--mute)}
+.chart{display:flex;align-items:flex-end;gap:6px;height:90px}.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;font-size:11px;color:var(--mute)}.col i{width:100%;background:var(--acc);border-radius:5px 5px 2px 2px;min-height:3px;opacity:.85}
+.dl{display:grid;gap:8px}.dr{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:10px}.dr:hover{border-color:var(--acc)}.dr .n{font-weight:600;cursor:pointer;flex:1}.dr small{color:var(--mute);display:block;font-weight:400}
+input[type=text],textarea{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card)}textarea{min-height:90px;resize:vertical}
+.add{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:14px 0}@media(max-width:700px){.add{grid-template-columns:1fr}}
+details{margin-bottom:14px}summary{cursor:pointer;color:var(--acc);font-weight:600;font-size:14px;margin-bottom:8px}
+.tw{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}th{background:var(--hov);position:sticky;top:0;font-weight:600;color:var(--mute)}tr:last-child td{border:0}
+td[contenteditable]{min-width:120px;outline:none}td[contenteditable]:focus{background:var(--sel)}
+.tag{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--hov);color:var(--mute)}.tag.due{background:color-mix(in srgb,var(--acc) 16%,transparent);color:var(--acc)}.tag.new{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.x{color:var(--mute);font-size:18px;padding:0 6px}.x:hover{color:var(--bad)}
+.study{max-width:720px;margin:0 auto}.prog{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin:10px 0 18px}.prog i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.flash{min-height:280px;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:36px 32px;font-size:26px;line-height:1.35;font-weight:600;white-space:pre-wrap;cursor:pointer}
+.flash small{display:block;font-size:12px;font-weight:600;color:var(--mute);letter-spacing:.04em;margin-bottom:14px}.flash hr{border:0;border-top:1px solid var(--line);margin:22px auto;width:60%}.flash .a{color:var(--acc)}
+.rate{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.rate button{padding:12px 6px;border:1px solid var(--bd);border-radius:10px;background:var(--card);font-weight:600}.rate button small{display:block;font-weight:400;color:var(--mute);font-size:12px}.rate button:hover{border-color:var(--acc);background:var(--sel)}
+.empty{text-align:center;padding:40px 20px;color:var(--mute)}.empty h2{color:var(--ink)}
+dialog{margin:auto;padding:22px 24px;width:min(420px,92vw);border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 20px 50px #0004}dialog::backdrop{background:#0007}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 18px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none}#toast.on{opacity:1}
+.foot{text-align:center;color:var(--mute);font-size:13px;padding:0 24px 28px}kbd{border:1px solid var(--bd);border-radius:5px;padding:0 6px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="top"><header><div class="brand"><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M7 3h10"/></svg></span><h1>Recall</h1></div><div class="hb"><span class="streak" id="stk"></span><button class="pill" id="theme">Dark mode</button></div></header></div>
+<div class="app"><aside class="panel" id="side"></aside><main id="main"></main></div>
+<p class="foot">Study shortcuts: <kbd>Space</kbd> show answer · <kbd>1</kbd> Again · <kbd>2</kbd> Hard · <kbd>3</kbd> Good · <kbd>4</kbd> Easy · <kbd>Esc</kbd> exit</p>
+<dialog id="dn"><h2 id="dt"></h2><input type="text" id="di" maxlength="80" autocomplete="off"><div class="acts" style="margin-top:14px;justify-content:flex-end"><button class="pill" id="dc">Cancel</button><button class="go" id="dok">Save</button></div></dialog>
+<input type="file" id="file" accept="application/json" hidden><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s),DAY=864e5,esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dk=d=>{d=d||new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()},uid=()=>Math.random().toString(36).slice(2,9);
+let S={decks:[],log:{},theme:null};try{Object.assign(S,JSON.parse(localStorage.getItem("recall")||"{}"))}catch(e){}
+const save=()=>{try{localStorage.setItem("recall",JSON.stringify(S))}catch(e){}};
+let view={t:"home"},Q=null,askCb=null;
+const mk=(f,b)=>({id:uid(),f,b,ef:2.5,int:0,reps:0,due:0,lapses:0}),isDue=c=>c.due<=Date.now(),dueN=d=>d.cards.filter(isDue).length,deck=id=>S.decks.find(d=>d.id===id);
+const eod=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+function next(c,q){const n={...c};if(q===1){n.reps=0;n.int=0;n.due=Date.now()+6e5;n.ef=Math.max(1.3,c.ef-.2);n.lapses=c.lapses+1;return n}
+ n.reps=c.reps+1;let i=n.reps===1?1:n.reps===2?3:Math.round(c.int*c.ef);
+ if(q===2){i=Math.max(1,Math.round((c.int||1)*1.2));n.ef=Math.max(1.3,c.ef-.15)}if(q===4){i=Math.round(i*1.4);n.ef=c.ef+.15}
+ n.int=Math.max(1,i);n.due=eod(Date.now()+n.int*DAY);return n}
+const fd=n=>n<30?n+"d":n<365?Math.round(n/30)+"mo":(n/365).toFixed(1)+"y",lab=(c,q)=>q===1?"10m":fd(next(c,q).int);
+const status=c=>c.reps===0&&!c.due?'<span class="tag new">New</span>':isDue(c)?'<span class="tag due">Due</span>':c.due-Date.now()<DAY?'<span class="tag">Today</span>':`<span class="tag">In ${fd(Math.ceil((c.due-Date.now())/DAY))}</span>`;
+function streak(){let n=0,d=new Date();if(!(S.log[dk(d)]||{}).n)d.setDate(d.getDate()-1);while((S.log[dk(d)]||{}).n){n++;d.setDate(d.getDate()-1)}return n}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("on"),1800)}
+function ask(title,val,cb){$("#dt").textContent=title;$("#di").value=val||"";askCb=cb;$("#dn").showModal();$("#di").focus();$("#di").select()}
+function dl(name,text,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()}
+const SAMPLE=[["Newton’s second law","F = m·a"],["Kinetic energy","KE = ½·m·v²"],["Ohm’s law","V = I·R"],["Wave speed","v = f·λ"],["Momentum","p = m·v"],["Gravitational potential energy near Earth","PE = m·g·h"],["Period of a simple pendulum","T = 2π·√(L / g)"],["Average speed","speed = distance ÷ time"]];
+function side(){$("#side").innerHTML=`<button class="di ${view.t==="home"?"on":""}" data-a="home"><span>Dashboard</span></button><h3 style="margin:14px 12px 6px">Decks</h3>`+
+ (S.decks.map(d=>`<button class="di ${view.id===d.id&&view.t!=="home"?"on":""}" data-a="open" data-id="${d.id}"><span>${esc(d.name)}</span><b class="${dueN(d)?"":"z"}">${dueN(d)}</b></button>`).join("")||'<p style="padding:6px 12px;color:var(--mute);font-size:14px">No decks yet</p>')+
+ `<div class="side2"><button data-a="newdeck">+ New deck</button><button data-a="sample">Load sample deck</button><button data-a="export">Export backup</button><button data-a="import">Import backup</button></div>`}
+function home(){const tot=S.decks.reduce((a,d)=>a+d.cards.length,0),due=S.decks.reduce((a,d)=>a+dueN(d),0),t=S.log[dk()]||{n:0};
+ let n14=0,ok14=0;const days=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const l=S.log[dk(d)]||{n:0,ok:0};n14+=l.n;ok14+=l.ok;return{n:l.n,d}}),mx=Math.max(1,...days.map(x=>x.n));
+ if(!S.decks.length)return`<div class="panel empty"><h2>Welcome to Recall</h2><p style="margin-bottom:18px">Flashcards that show you each card right before you would forget it.<br>Create a deck, or start with a ready-made one.</p><div class="acts" style="justify-content:center"><button class="go" data-a="newdeck">Create a deck</button><button class="pill" data-a="sample">Load sample deck</button></div></div>`;
+ return`<div class="stats"><div class="stat"><b>${due}</b><span>cards due now</span></div><div class="stat"><b>${t.n}</b><span>reviews today</span></div><div class="stat"><b>${n14?Math.round(ok14/n14*100)+"%":"–"}</b><span>retention, 14 days</span></div><div class="stat"><b>${tot}</b><span>total cards</span></div></div>
+ <div class="panel" style="margin-bottom:16px"><h3>Reviews in the last 14 days</h3><div class="chart">${days.map(x=>`<div class="col" title="${x.n} reviews"><i style="height:${x.n/mx*100}%"></i>${x.d.getDate()}</div>`).join("")}</div></div>
+ <div class="panel"><h2>Your decks</h2><div class="dl">${S.decks.map(d=>`<div class="dr"><div class="n" data-a="open" data-id="${d.id}">${esc(d.name)}<small>${d.cards.length} cards, ${dueN(d)} due</small></div><button class="go" data-a="study" data-id="${d.id}" ${dueN(d)?"":"disabled"}>Study</button></div>`).join("")}</div></div>`}
+function deckView(){const d=deck(view.id);if(!d){view={t:"home"};return home()}const n=dueN(d);
+ return`<div class="panel"><div class="acts" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">${esc(d.name)}</h2><div class="acts"><button class="pill" data-a="rename">Rename</button><button class="pill" data-a="csv">Export CSV</button><button class="pill danger" data-a="del">Delete deck</button></div></div>
+ <p style="color:var(--mute);margin-bottom:14px">${d.cards.length} cards, ${n} due now</p><div class="acts"><button class="go" data-a="study" data-id="${d.id}" ${n?"":"disabled"}>Study ${n} due</button><button class="pill" data-a="cram" ${d.cards.length?"":"disabled"}>Review all cards</button></div>
+ <div class="add"><input type="text" id="nf" placeholder="Front (question)"><input type="text" id="nb" placeholder="Back (answer)"><button class="go" data-a="add">Add card</button></div>
+ <details><summary>Import many cards at once</summary><textarea id="bulk" placeholder="One card per line:  front | back   (tab-separated also works)"></textarea><div style="margin-top:8px"><button class="pill" data-a="bulk">Add these cards</button></div></details>
+ ${d.cards.length?`<div class="tw"><table><tr><th>Front</th><th>Back</th><th>Status</th><th></th></tr>${d.cards.map(c=>`<tr><td contenteditable data-c="${c.id}" data-f="f">${esc(c.f)}</td><td contenteditable data-c="${c.id}" data-f="b">${esc(c.b)}</td><td>${status(c)}</td><td><button class="x" data-a="rm" data-c="${c.id}" aria-label="Delete card">×</button></td></tr>`).join("")}</table></div><p style="color:var(--mute);font-size:13px;margin-top:8px">Tip: click any front or back to edit it.</p>`:'<p class="empty">No cards yet. Add your first one above.</p>'}</div>`}
+function study(){const d=deck(Q.d);if(!Q.queue.length){return`<div class="study panel empty"><h2>Session complete</h2><p style="margin-bottom:6px">You reviewed ${Q.total} card${Q.total>1?"s":""}.</p><p style="margin-bottom:20px">${Q.total?Math.round(Q.good/Q.total*100):0}% rated Good or Easy.</p><button class="go" data-a="open" data-id="${d.id}">Back to deck</button></div>`}
+ const c=d.cards.find(x=>x.id===Q.queue[0]);return`<div class="study"><div class="acts" style="justify-content:space-between"><span style="color:var(--mute)">${esc(d.name)}</span><button class="pill" data-a="open" data-id="${d.id}">End session</button></div><div class="prog"><i style="width:${Q.done/Q.total*100}%"></i></div>
+ <div class="panel flash" data-a="flip"><small>QUESTION</small>${esc(c.f)}${Q.flip?`<hr><small>ANSWER</small><span class="a">${esc(c.b)}</span>`:""}</div>
+ ${Q.flip?`<div class="rate">${[1,2,3,4].map(q=>`<button data-a="rate" data-q="${q}">${["Again","Hard","Good","Easy"][q-1]}<small>${lab(c,q)}</small></button>`).join("")}</div>`:`<div class="acts" style="justify-content:center;margin-top:16px"><button class="go" data-a="flip" style="min-width:200px">Show answer</button></div>`}</div>`}
+function render(){side();$("#main").innerHTML=view.t==="study"?study():view.t==="deck"?deckView():home();const s=streak();$("#stk").textContent=s?s+"-day streak":"Start a streak today"}
+function begin(d,all){const cs=(all?[...d.cards]:d.cards.filter(isDue)).sort((a,b)=>a.due-b.due);if(!cs.length)return;Q={d:d.id,queue:cs.map(c=>c.id),total:cs.length,done:0,good:0,flip:false};view={t:"study",id:d.id};render()}
+function rate(q){if(!Q||!Q.queue.length||!Q.flip)return;const d=deck(Q.d),id=Q.queue.shift(),i=d.cards.findIndex(c=>c.id===id);d.cards[i]=next(d.cards[i],q);
+ const l=S.log[dk()]=S.log[dk()]||{n:0,ok:0};l.n++;if(q>1)l.ok++;if(q===1)Q.queue.push(id);else{Q.done++;if(q>2)Q.good++}Q.flip=false;save();render()}
+function addCards(d,list){list.forEach(([f,b])=>d.cards.push(mk(f,b)));save()}
+$("#side").onclick=$("#main").onclick=e=>{const el=e.target.closest("[data-a]");if(!el)return;const a=el.dataset.a,d=deck(el.dataset.id||view.id);
+ if(a==="home"){view={t:"home"};Q=null}else if(a==="open"){view={t:"deck",id:el.dataset.id};Q=null}else if(a==="study")return begin(d,false);else if(a==="cram")return begin(d,true);
+ else if(a==="flip"){if(Q){Q.flip=true}}else if(a==="rate")return rate(+el.dataset.q);
+ else if(a==="newdeck")return ask("New deck name","",v=>{const n={id:uid(),name:v,cards:[]};S.decks.push(n);save();view={t:"deck",id:n.id};render();$("#nf")&&$("#nf").focus()});
+ else if(a==="rename")return ask("Rename deck",d.name,v=>{d.name=v;save();render()});
+ else if(a==="del"){if(confirm("Delete “"+d.name+"” and all its cards?")){S.decks=S.decks.filter(x=>x!==d);save();view={t:"home"}}}
+ else if(a==="add"){const f=$("#nf").value.trim(),b=$("#nb").value.trim();if(!f||!b)return toast("Fill in both sides");addCards(d,[[f,b]]);render();$("#nf").focus();toast("Card added")}
+ else if(a==="bulk"){const rows=$("#bulk").value.split("\n").map(l=>{const k=l.includes("|")?l.indexOf("|"):l.indexOf("\t");return k<0?null:[l.slice(0,k).trim(),l.slice(k+1).trim()]}).filter(r=>r&&r[0]&&r[1]);if(!rows.length)return toast("Use one card per line: front | back");addCards(d,rows);render();toast(rows.length+" cards added")}
+ else if(a==="rm"){d.cards=d.cards.filter(c=>c.id!==el.dataset.c);save()}
+ else if(a==="sample"){const n={id:uid(),name:"Physics formulas",cards:SAMPLE.map(([f,b])=>mk(f,b))};S.decks.push(n);save();view={t:"deck",id:n.id}}
+ else if(a==="export")return dl("recall-backup.json",JSON.stringify(S,null,2),"application/json");
+ else if(a==="import")return $("#file").click();
+ else if(a==="csv")return dl(d.name+".csv",d.cards.map(c=>[c.f,c.b].map(x=>'"'+x.replace(/"/g,'""')+'"').join(",")).join("\n"),"text/csv");
+ render()};
+$("#main").onfocusout=e=>{const t=e.target;if(t.dataset&&t.dataset.f){const c=deck(view.id).cards.find(x=>x.id===t.dataset.c),v=t.textContent.trim();if(v&&v!==c[t.dataset.f]){c[t.dataset.f]=v;save()}else t.textContent=c[t.dataset.f]}};
+$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{try{const j=JSON.parse(x);if(!Array.isArray(j.decks))throw 0;j.decks.forEach(d=>{d.id=uid();S.decks.push(d)});Object.entries(j.log||{}).forEach(([k,v])=>{const l=S.log[k]=S.log[k]||{n:0,ok:0};l.n+=v.n;l.ok+=v.ok});save();render();toast("Backup imported")}catch(err){toast("That isn’t a valid Recall backup")}})};
+$("#dok").onclick=()=>{const v=$("#di").value.trim();if(v){$("#dn").close();askCb(v)}};$("#dc").onclick=()=>$("#dn").close();$("#di").onkeydown=e=>{if(e.key==="Enter")$("#dok").click()};
+document.onkeydown=e=>{if(view.t!=="study"||!Q||document.querySelector("dialog[open]")||/INPUT|TEXTAREA/.test(e.target.tagName))return;
+ if(e.key==="Escape"){view={t:"deck",id:Q.d};Q=null;return render()}
+ if(!Q.queue.length)return;if((e.key===" "||e.key==="Enter")&&!Q.flip){e.preventDefault();Q.flip=true;render()}else if("1234".includes(e.key)&&e.key&&Q.flip)rate(+e.key)};
+let dark;try{const s=localStorage.getItem("recall_theme");dark=s?s==="dark":matchMedia("(prefers-color-scheme:dark)").matches}catch(e){dark=false}
+function theme(){document.documentElement.dataset.theme=dark?"dark":"light";$("#theme").textContent=dark?"Light mode":"Dark mode";$("meta[name=theme-color]").content=dark?"#0B1020":"#4F46E5"}
+$("#theme").onclick=()=>{dark=!dark;try{localStorage.setItem("recall_theme",dark?"dark":"light")}catch(e){}theme()};
+theme();render();
+</script>
+</body>
+</html>
